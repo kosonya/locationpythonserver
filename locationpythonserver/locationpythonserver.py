@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from SocketServer import ThreadingMixIn
+import threading
 import cgi
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
@@ -15,11 +17,35 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         print "Data:", data
         self.send_response(200, "Roger that")
 
-
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    allow_reuse_address = True
+ 
+    def shutdown(self):
+        self.socket.close()
+        HTTPServer.shutdown(self)
+ 
+class SimpleHttpServer():
+    def __init__(self, ip, port):
+        self.server = ThreadedHTTPServer((ip,port), HTTPRequestHandler)
+ 
+    def start(self):
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.daemon = True
+        self.server_thread.start()
+ 
+    def waitForThread(self):
+        self.server_thread.join()
+ 
+    def stop(self):
+        self.server.shutdown()
+        self.waitForThread()
 
 
 def main():
-    print "Hello"
+    server = SimpleHttpServer('', 8080)
+    print 'HTTP Server Running...........'
+    server.start()
+    server.waitForThread()
     
 if __name__ == "__main__":
     main()

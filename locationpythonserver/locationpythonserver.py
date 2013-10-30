@@ -25,15 +25,28 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         print location
         db = MySQLdb.connect(host = 'localhost', user = 'root', db = 'wifilocation')
         c = db.cursor()
+        query = "SELECT location_id FROM locations WHERE location_name = \'%s\'" % location
+        while c.execute(query) != 1:
+            c.execute("INSERT INTO locations (location_name) VALUES (\'%s\')" % location)
+            db.commit()
+        location_id = int(c.fetchone()[0])
+        
         for key in obj.keys():
             if key[:9] == "wifiBSSID":
                 bssid = key[9:]
                 level = obj[key]
                 print bssid, ":", level
-                query = "INSERT INTO readings (timestamp, location, BSSID, level) VALUES (%d, \'%s\', \'%s\', %d)" % (timestamp, location, bssid, level)
-                c.execute(query)
+                query = "INSERT INTO wifi_readings (timestamp, location_id, BSSID, level) VALUES (%d, %d, \'%s\', %d)" % (timestamp, location_id, bssid, level)
+                print query
+                r= c.execute(query)
+                print "response:", r
+                for l in c.fetchall():
+                        print l
+                print '\n'
         c.close()
+        db.commit()
         db.close()
+        print '\n'
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     allow_reuse_address = True

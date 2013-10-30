@@ -4,6 +4,8 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 import threading
 import cgi
+import json
+import MySQLdb
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
  
@@ -16,6 +18,22 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         data = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
         print "Data:", data
         self.send_response(200, "Roger that")
+        obj = json.loads(data.keys()[0])
+        timestamp = obj['timestamp']
+        print 'Timestamp:', timestamp
+        location = obj['location']
+        print location
+        db = MySQLdb.connect(host = 'localhost', user = 'root', db = 'wifilocation')
+        c = db.cursor()
+        for key in obj.keys():
+            if key[:9] == "wifiBSSID":
+                bssid = key[9:]
+                level = obj[key]
+                print bssid, ":", level
+                query = "INSERT INTO readings (timestamp, location, BSSID, level) VALUES (%d, \'%s\', \'%s\', %d)" % (timestamp, location, bssid, level)
+                c.execute(query)
+        c.close()
+        db.close()
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     allow_reuse_address = True
@@ -30,7 +48,7 @@ class SimpleHttpServer():
  
     def start(self):
         self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.daemon = True
+        self.server_thread.daemon = False
         self.server_thread.start()
  
     def waitForThread(self):

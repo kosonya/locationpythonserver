@@ -43,6 +43,9 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 for l in c.fetchall():
                         print l
                 print '\n'
+        if obj.has_key("GPSLat"):
+            pass
+                
         c.close()
         db.commit()
         db.close()

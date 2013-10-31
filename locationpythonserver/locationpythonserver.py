@@ -24,23 +24,22 @@ def process_one_obj(obj):
         db.commit()
     location_id = int(c.fetchone()[0])
     
-    vals = []
     
     for key in obj.keys():
         if key[:9] == "wifiBSSID":
             bssid = key[9:]
             level = obj[key]
-            vals.append( (timestamp, location_id, bssid, level) )
-    query = "INSERT INTO wifi_readings (timestamp, location_id, BSSID, level) VALUES (%d, %d, \'%s\', %d)"
-    print query
-    print len(vals), "Wifi points"
-    c.executemany(query, vals)
+#            print bssid, ":", level
+            query = "INSERT INTO wifi_readings (timestamp, location_id, BSSID, level) VALUES (%d, %d, \'%s\', %d)" % (timestamp, location_id, bssid, level)
+#            print query
+            c.execute(query)
+
     if obj.has_key("GPSLat"):
         if obj.has_key("Cellular_signal"):
             query = "INSERT INTO gps_and_signal_readings (timestamp, location_id, Longitude, Latitude, Cellular_signal) VALUES (%d, %d, %f, %f, %d)" % (timestamp, location_id, obj['GPSLon'], obj['GPSLat'], obj['Cellular_signal'])
         else:
             query = "INSERT INTO gps_and_signal_readings (timestamp, location_id, Longitude, Latitude) VALUES (%d, %d, %f, %f)" % (timestamp, location_id, obj['GPSLon'], obj['GPSLat'])
-        print query
+#        print query
         c.execute(query)
     c.close()
     db.commit()
@@ -55,7 +54,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         length = int(self.headers.getheader('content-length'))
         print "Length:", length
         data = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
-        print "Data:", data
+        #print "Data:", data
         self.send_response(200, "Roger that")
         obj = json.loads(data.keys()[0])
         if isinstance(obj, list):

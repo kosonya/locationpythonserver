@@ -23,16 +23,18 @@ def process_one_obj(obj):
         c.execute("INSERT INTO locations (location_name) VALUES (\'%s\')" % location)
         db.commit()
     location_id = int(c.fetchone()[0])
-            
+    
+    vals = []
+    
     for key in obj.keys():
         if key[:9] == "wifiBSSID":
             bssid = key[9:]
             level = obj[key]
-            print bssid, ":", level
-            query = "INSERT INTO wifi_readings (timestamp, location_id, BSSID, level) VALUES (%d, %d, \'%s\', %d)" % (timestamp, location_id, bssid, level)
-            print query
-            c.execute(query)
-
+            vals.append( (timestamp, location_id, bssid, level) )
+    query = "INSERT INTO wifi_readings (timestamp, location_id, BSSID, level) VALUES (%d, %d, \'%s\', %d)"
+    print query
+    print len(vals), "Wifi points"
+    c.executemany(query, vals)
     if obj.has_key("GPSLat"):
         if obj.has_key("Cellular_signal"):
             query = "INSERT INTO gps_and_signal_readings (timestamp, location_id, Longitude, Latitude, Cellular_signal) VALUES (%d, %d, %f, %f, %d)" % (timestamp, location_id, obj['GPSLon'], obj['GPSLat'], obj['Cellular_signal'])

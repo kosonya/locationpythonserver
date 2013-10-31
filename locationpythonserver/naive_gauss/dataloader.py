@@ -21,6 +21,14 @@ def get_all_locations():
     db.close()
     return res
 
+def get_all_timestamps():
+    db, c = _connect()
+    c.execute("SELECT DISTINCT timestamp FROM wifi_readings")
+    res = [int(x[0]) for x in c.fetchall()]
+    c.close()
+    db.close()
+    return res
+
 def get_all_bssids():
     db, c = _connect()
     c.execute("SELECT DISTINCT BSSID FROM wifi_readings")
@@ -75,9 +83,9 @@ def get_some_timestamp():
     db.close()
     return res
 
-def get_few_timestamp(n):
+def get_few_timestamps(n):
     db, c = _connect()
-    c.execute("SELECT timestamp FROM wifi_readings LIMIT %d" % n)
+    c.execute("SELECT DISTINCT timestamp FROM wifi_readings LIMIT %d" % n)
     res = [int(x[0]) for x in c.fetchall()]
     c.close()
     db.close()
@@ -95,7 +103,7 @@ def get_one_gps_reading(timestamp):
 def get_true_location(timestamp):
     db, c = _connect()
     c.execute("SELECT location_id FROM gps_and_signal_readings WHERE timestamp = %d" % timestamp)
-    res = int(c.fetchall()[0])
+    res = int(c.fetchone()[0])
     c.close()
     db.close()
     return res

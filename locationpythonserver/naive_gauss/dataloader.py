@@ -56,8 +56,51 @@ def get_all_gps_stats():
     c.close()
     db.close()
     return res
-   
-    
+
+def get_one_wifi_reading(timestamp):
+    db, c = _connect()
+    c.execute("SELECT BSSID, level FROM wifi_readings WHERE timestamp = %d" % timestamp)
+    res = {}
+    for (bssid, level) in c.fetchall():
+        res[bssid] = int(level)
+    c.close()
+    db.close()
+    return res
+
+def get_some_timestamp():
+    db, c = _connect()
+    c.execute("SELECT timestamp FROM wifi_readings LIMIT 1")
+    res = int(c.fetchone()[0])
+    c.close()
+    db.close()
+    return res
+
+def get_few_timestamp(n):
+    db, c = _connect()
+    c.execute("SELECT timestamp FROM wifi_readings LIMIT %d" % n)
+    res = [int(x[0]) for x in c.fetchall()]
+    c.close()
+    db.close()
+    return res
+
+def get_one_gps_reading(timestamp):
+    db, c = _connect()
+    c.execute("SELECT Latitude, Longitude FROM gps_and_signal_readings WHERE timestamp = %d" % timestamp)
+    row = c.fetchone()
+    res = float(row[0]), float(row[1])
+    c.close()
+    db.close()
+    return res
+
+def get_true_location(timestamp):
+    db, c = _connect()
+    c.execute("SELECT location_id FROM gps_and_signal_readings WHERE timestamp = %d" % timestamp)
+    res = int(c.fetchall()[0])
+    c.close()
+    db.close()
+    return res
+
+
 def main():
     print get_all_locations()
     for bssid in get_all_bssids():
@@ -68,6 +111,9 @@ def main():
         for bssid in data[location].keys():
             print "\t", bssid, ":", data[location][bssid]
     print get_all_gps_stats()
+    t = get_some_timestamp()
+    print get_one_wifi_reading(t)
+    print get_one_gps_reading(t)
     
 if __name__ == "__main__":
     main()

@@ -109,6 +109,11 @@ def get_true_location(timestamp):
     return res
 
 
+def load_wifi_gps(timestamp):
+    w = get_one_wifi_reading(timestamp)
+    g = get_one_gps_reading(timestamp)
+    return w, g
+
 def main():
     print get_all_locations()
     for bssid in get_all_bssids():

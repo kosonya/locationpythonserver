@@ -109,6 +109,7 @@ def get_true_location(timestamp):
     return res
 
 
+
 def main():
     print get_all_locations()
     for bssid in get_all_bssids():

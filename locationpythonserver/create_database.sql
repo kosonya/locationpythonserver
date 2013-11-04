@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS `wifilocation`;
-CREATE DATABASE `wifilocation`;
-USE `wifilocation`;
+DROP DATABASE IF EXISTS `wifilocation_test`;
+CREATE DATABASE `wifilocation_test`;
+USE `wifilocation_test`;
 
 DROP TABLE IF EXISTS `gps_and_signal_readings`;
 CREATE TABLE `gps_and_signal_readings` (

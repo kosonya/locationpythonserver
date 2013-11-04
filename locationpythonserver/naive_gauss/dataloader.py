@@ -2,8 +2,11 @@
 
 import MySQLdb
 
+db_name = 'wifilocation'
+
 def _connect():
-    db = MySQLdb.connect(host = 'localhost', user = 'root', db = 'wifilocation')
+    global db_name
+    db = MySQLdb.connect(host = 'localhost', user = 'root', db = db_name)
     db.set_character_set('utf8')
     c = db.cursor()
     c.execute('SET NAMES utf8;')
@@ -108,7 +111,13 @@ def get_true_location(timestamp):
     db.close()
     return res
 
-
+def lookup_location(location_id):
+    db, c = _connect()
+    c.execute("SELECT location_name FROM locations WHERE location_id = %d" % location_id)
+    res = c.fetchone()[0]
+    c.close()
+    db.close()
+    return res  
 
 def main():
     print get_all_locations()

@@ -7,24 +7,19 @@ import cgi
 import json
 import MySQLdb
 
-def process_one_obj(obj):
+
+
+
+def _process_one_obj(obj, db, c):
     timestamp = obj['timestamp']
     print 'Timestamp:', timestamp
     location = obj['location']
     print location
-    db = MySQLdb.connect(host = 'localhost', user = 'root', db = 'wifilocation')
-    db.set_character_set('utf8')
-    c = db.cursor()
-    c.execute('SET NAMES utf8;')
-    c.execute('SET CHARACTER SET utf8;')
-    c.execute('SET character_set_connection=utf8;')
     query = "SELECT location_id FROM locations WHERE location_name = \'%s\'" % location
     while c.execute(query) != 1:
         c.execute("INSERT INTO locations (location_name) VALUES (\'%s\')" % location)
         db.commit()
-    location_id = int(c.fetchone()[0])
-    
-    
+    location_id = int(c.fetchone()[0])    
     for key in obj.keys():
         if key[:9] == "wifiBSSID":
             bssid = key[9:]
@@ -41,6 +36,29 @@ def process_one_obj(obj):
             query = "INSERT INTO gps_and_signal_readings (timestamp, location_id, Longitude, Latitude) VALUES (%d, %d, %f, %f)" % (timestamp, location_id, obj['GPSLon'], obj['GPSLat'])
 #        print query
         c.execute(query)
+
+
+def process_one_obj(obj):
+    db = MySQLdb.connect(host = 'localhost', user = 'root', db = 'wifilocation_test')
+    db.set_character_set('utf8')
+    c = db.cursor()
+    c.execute('SET NAMES utf8;')
+    c.execute('SET CHARACTER SET utf8;')
+    c.execute('SET character_set_connection=utf8;')
+    _process_one_obj(obj, db, c)
+    c.close()
+    db.commit()
+    db.close()
+
+def process_several_objs(objs):
+    db = MySQLdb.connect(host = 'localhost', user = 'root', db = 'wifilocation_test')
+    db.set_character_set('utf8')
+    c = db.cursor()
+    c.execute('SET NAMES utf8;')
+    c.execute('SET CHARACTER SET utf8;')
+    c.execute('SET character_set_connection=utf8;')
+    for o in objs:
+        _process_one_obj(o, db, c)
     c.close()
     db.commit()
     db.close()
@@ -59,11 +77,12 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         obj = json.loads(data.keys()[0])
         if isinstance(obj, list):
             print "Processing a list"
-            for o in obj:
-                process_one_obj(o)
+            t = threading.Thread(target = process_several_objs, args = [obj])
+            t.start()
         elif isinstance(obj, dict) and obj.has_key('timestamp') and obj.has_key('location'):
             print "Processing single dict"
-            process_one_obj(obj)
+            t = threading.Thread(target = process_one_obj, args = [obj])
+            t.start()
         print '\n'
         
 

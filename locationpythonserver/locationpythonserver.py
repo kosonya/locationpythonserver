@@ -65,6 +65,11 @@ def process_several_objs(objs):
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
  
+    def address_string(self): #Fix for the slow response
+        host, port = self.client_address[:2]
+        #return socket.getfqdn(host)
+        return host
+ 
     def do_POST(self):
         print "Path:", self.path
         ctype, _ = cgi.parse_header(self.headers.getheader('content-type'))

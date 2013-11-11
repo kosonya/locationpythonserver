@@ -29,4 +29,13 @@ class JsonParser(object):
                             "lon": obj["GPSLon"]
                             }
             return timestamp, locname, wifi_data, gps_data
+        
+    def encode_wifi_gps(self, timestamp, locname, wifi_data, gps_data):
+        res = {"id": "fake_sender", "timestamp": timestamp, "location": locname}
+        for BSSID, level in wifi_data.items():
+            res["wifiBSSID%s" % BSSID] = level
+        res["GPSLat"] = gps_data["lat"]
+        res["GPSLon"] = gps_data["lon"]
+        res_str = json.dumps(res)
+        return res_str
                 

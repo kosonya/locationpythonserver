@@ -96,6 +96,8 @@ def main():
     print loc_res.resolve_id(23)
     loc_res.start_background_updates()
     time.sleep(10)
+    loc_res.background_updates_delay = 2
+    time.sleep(10)
     
 if __name__ == "__main__":
     main()

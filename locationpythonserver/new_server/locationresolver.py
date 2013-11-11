@@ -17,6 +17,7 @@ class LocationResolver(object):
         self.db_name = db_name
         self.background_updates_delay = background_updates_delay
         self.debug = debug
+        self.fetch_all_from_db()
         
     def db_init(self):
         db = MySQLdb.connect(host = self.db_host, user = self.db_user,

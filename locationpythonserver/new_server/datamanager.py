@@ -17,6 +17,7 @@ class DataManager(object):
         self.debug = debug
         self.wifi_stats = {}
         self.gps_stats = {}
+        self.fetch_all_from_db()
         
     def db_init(self):
         db = MySQLdb.connect(host = self.db_host, user = self.db_user,
@@ -75,10 +76,58 @@ class DataManager(object):
         c.close()
         db.close()
         
- 
+    def _save_one_reading(self, timestamp, locid, wifi_data, gps_data, db, c):
+        if wifi_data != {}:
+            query_template = "INSERT INTO wifi_readings (timestamp, location_id, BSSID, level) VALUES (%s, %s, %s, %s)"
+            for BSSID, level in wifi_data.items():
+                c.execute(query_template, (timestamp, locid, BSSID, level))
+        if gps_data != {}:
+            query_template = "INSERT INTO gps_and_signal_readings (timestamp, location_id, Longitude, Latitude) VALUES (%s, %s, %s, %s)"
+            c.execute(query_template, (timestamp, locid, gps_data["lon"], gps_data["lat"]))
+            
+    def save_one_reading(self, timestamp, locid, wifi_data, gps_data):
+        db, c = self.db_init()
+        self._save_one_reading(timestamp, locid, wifi_data, gps_data, db, c)
+        c.close()
+        db.commit()
+        db.close()
+        
+    def load_one_reading(self, timestamp):
+        db, c = self.db_init()
+        query_template = "SELECT location_id, Longitude, Latitude FROM gps_and_signal_readings WHERE timestamp = %s"
+        c.execute(query_template, (timestamp, ))
+        res = c.fetchone()
+        gps = {}
+        locid = int(res[0])
+        gps['lon'] = float(res[1])
+        gps['lat'] = float(res[2])
+        wifi = {}
+        query_template = "SELECT BSSID, level FROM wifi_readings WHERE timestamp = %s AND location_id = %s"
+        c.execute(query_template, (timestamp, locid))
+        for BSSID, level in c.fetchall():
+            wifi[str(BSSID)] = int(level)
+        c.close()
+        db.close()
+        return timestamp, locid, wifi, gps
+    
+    def load_timestamps(self, limit = None):
+        db, c = self.db_init()
+        if not limit:
+            query = "SELECT DISTINCT timestamp FROM gps_and_signal_readings"
+            c.execute(query)
+        else:
+            query_template = "SELECT DISTINCT timestamp FROM gps_and_signal_readings LIMIT %s"
+            c.execute(query_template, (limit, ))
+        res = [int(row[0]) for row in c.fetchall()]
+        c.close()
+        db.close()
+        return res
 
 def main():
-    pass
+    dm = DataManager(debug = True)
+    ts = dm.load_timestamps(limit = 10)
+    for t in ts:
+        print dm.load_one_reading(t)
     
 if __name__ == "__main__":
     main()

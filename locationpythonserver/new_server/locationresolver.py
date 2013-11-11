@@ -8,7 +8,7 @@ import threading
 class LocationResolver(object):
     
     def __init__(self, db_host = "localhost", db_user = "root", db_password = "",
-                 db_name = "wifilocation", background_updates_delay = 10):
+                 db_name = "wifilocation", background_updates_delay = 10, debug = False):
         self.name_to_id = {}
         self.id_to_name = {}
         self.db_host = db_host
@@ -16,6 +16,7 @@ class LocationResolver(object):
         self.db_password = db_password
         self.db_name = db_name
         self.background_updates_delay = background_updates_delay
+        self.debug = debug
         
     def db_init(self):
         db = MySQLdb.connect(host = self.db_host, user = self.db_user,
@@ -76,7 +77,8 @@ class LocationResolver(object):
         def update(main_class):
             while True:
                 main_class.fetch_all_from_db()
-                #print "Updated! Sleeping for {}".format(self.background_updates_delay)
+                if self.debug:
+                    print "Location list updated! Sleeping for {} seconds".format(self.background_updates_delay)
                 time.sleep(self.background_updates_delay)
             
         self.bg_upd_thread = threading.Thread(target = update, args = [self])

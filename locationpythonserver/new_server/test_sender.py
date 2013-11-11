@@ -16,5 +16,7 @@ def main():
         json_str = jp.encode_wifi_gps(timestamp, locname, wifi_data, gps_data)
         print json_str
         
+        
+        
 if __name__ == "__main__":
     main()

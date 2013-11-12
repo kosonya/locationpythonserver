@@ -24,7 +24,7 @@ respond_with_location = True
 class HTTPRequestHandler(BaseHTTPRequestHandler):
  
     def address_string(self): #Fix for the slow response
-        host, port = self.client_address[:2]
+        host, _ = self.client_address[:2]
         return host
  
     def do_POST(self):

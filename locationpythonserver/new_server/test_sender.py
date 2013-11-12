@@ -3,7 +3,6 @@
 import datamanager
 import jsonparser
 import locationresolver
-import urllib2
 import httplib
 
 def main():

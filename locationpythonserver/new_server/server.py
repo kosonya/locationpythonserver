@@ -66,12 +66,22 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             print "GET received:", self.path
         if None != re.search("/admin/dashboard*", self.path):
             filespath = os.path.dirname(os.path.realpath(__file__))
-            filename = os.path.join(filespath, "static", "dashboard.html")
+            if self.path.endswith(".css") or self.path.endswith(".png"):
+                webname = self.path.split('/')[-1]
+                filename = os.path.join(filespath, "static", webname)
+            else:
+                filename = os.path.join(filespath, "static", "dashboard.html")
+                is_html = True
             if debug:
                 print filename
             f = open(filename, "r")
             self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
+            if self.path.endswith(".css"):
+                self.send_header('Content-Type', 'text/css')
+            elif self.path.endswith(".png"):
+                self.send_header('Content-Type', 'image/png')
+            else:
+                self.send_header('Content-Type', 'text/html')
             self.end_headers()
             for line in f.readlines():
                 self.wfile.write(line)

@@ -7,6 +7,7 @@ import cgi
 import re
 import json
 import os
+import lxml.html
 
 import locationestimator
 import locationresolver
@@ -71,10 +72,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 filename = os.path.join(filespath, "static", webname)
             else:
                 filename = os.path.join(filespath, "static", "dashboard.html")
-                is_html = True
             if debug:
                 print filename
-            f = open(filename, "r")
             self.send_response(200)
             if self.path.endswith(".css"):
                 self.send_header('Content-Type', 'text/css')
@@ -83,10 +82,23 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             else:
                 self.send_header('Content-Type', 'text/html')
             self.end_headers()
-            for line in f.readlines():
-                self.wfile.write(line)
+            if self.path.endswith(".png"):
+                f = open(filename, "rb")
+                content = f.read()
+                self.wfile.write(content)
+                f.close()
+            elif self.path.endswith(".css"):
+                f = open(filename, "r")
+                for line in f.readlines():
+                    self.wfile.write(line)
+                f.close()
+            else: #assuming that's html
+                page = lxml.html.parse(filename)
+                page.findall(".//div[@id=\"aaa\"]")[0].text = "Works Perfectly!"
+                res = lxml.html.tostring(page, encoding = "utf-8", pretty_print = True)
+                for line in res:
+                    self.wfile.write(line)
             self.wfile.close()
-            f.close()
         else:
             self.send_response(404, "Not found")
 

@@ -6,6 +6,7 @@ import threading
 import cgi
 import re
 import json
+import os
 
 import locationestimator
 import locationresolver
@@ -59,6 +60,25 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     self.send_response(200, response)
                 self.send_response(200, "OK, I didn't do anything")
         
+    def do_GET(self):
+        global debug
+        if debug:
+            print "GET received:", self.path
+        if None != re.search("/admin/dashboard*", self.path):
+            filespath = os.path.dirname(os.path.realpath(__file__))
+            filename = os.path.join(filespath, "static", "dashboard.html")
+            if debug:
+                print filename
+            f = open(filename, "r")
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.end_headers()
+            for line in f.readlines():
+                self.wfile.write(line)
+            self.wfile.close()
+            f.close()
+        else:
+            self.send_response(404, "Not found")
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     allow_reuse_address = True

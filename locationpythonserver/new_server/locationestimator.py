@@ -21,7 +21,7 @@ class LocationEstimator(object):
             p = 1
             for bssid in wifi_reading.keys():
                 if wifi_stats[location].has_key(bssid):
-                    avg, std = wifi_stats[location][bssid]
+                    avg, std = wifi_stats[location][bssid]["avg"], wifi_stats[location][bssid]["std"]
                     level = wifi_reading[bssid]
                     if self.debug:
                         print "level, avg, std", level, avg, std, "pdf", self.pdf(level, avg, std)

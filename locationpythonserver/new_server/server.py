@@ -4,91 +4,60 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from SocketServer import ThreadingMixIn
 import threading
 import cgi
+import re
 import json
-import MySQLdb
 
+import locationestimator
+import locationresolver
+import datamanager
+import jsonparser
 
+debug = True
+json_parser = None
+data_manafer = None
+location_resolver = None
+save_readings = False
+respond_with_location = True
 
-
-def _process_one_obj(obj, db, c):
-    timestamp = obj['timestamp']
-    print 'Timestamp:', timestamp
-    location = obj['location']
-    print location
-    query = "SELECT location_id FROM locations WHERE location_name = \'%s\'" % location
-    while c.execute(query) != 1:
-        c.execute("INSERT INTO locations (location_name) VALUES (\'%s\')" % location)
-        db.commit()
-    location_id = int(c.fetchone()[0])    
-    for key in obj.keys():
-        if key[:9] == "wifiBSSID":
-            bssid = key[9:]
-            level = obj[key]
-#            print bssid, ":", level
-            query = "INSERT INTO wifi_readings (timestamp, location_id, BSSID, level) VALUES (%d, %d, \'%s\', %d)" % (timestamp, location_id, bssid, level)
-#            print query
-            c.execute(query)
-
-    if obj.has_key("GPSLat"):
-        if obj.has_key("Cellular_signal"):
-            query = "INSERT INTO gps_and_signal_readings (timestamp, location_id, Longitude, Latitude, Cellular_signal) VALUES (%d, %d, %f, %f, %d)" % (timestamp, location_id, obj['GPSLon'], obj['GPSLat'], obj['Cellular_signal'])
-        else:
-            query = "INSERT INTO gps_and_signal_readings (timestamp, location_id, Longitude, Latitude) VALUES (%d, %d, %f, %f)" % (timestamp, location_id, obj['GPSLon'], obj['GPSLat'])
-#        print query
-        c.execute(query)
-
-
-def process_one_obj(obj):
-    db = MySQLdb.connect(host = 'localhost', user = 'root', db = 'wifilocation_test')
-    db.set_character_set('utf8')
-    c = db.cursor()
-    c.execute('SET NAMES utf8;')
-    c.execute('SET CHARACTER SET utf8;')
-    c.execute('SET character_set_connection=utf8;')
-    _process_one_obj(obj, db, c)
-    c.close()
-    db.commit()
-    db.close()
-
-def process_several_objs(objs):
-    db = MySQLdb.connect(host = 'localhost', user = 'root', db = 'wifilocation_test')
-    db.set_character_set('utf8')
-    c = db.cursor()
-    c.execute('SET NAMES utf8;')
-    c.execute('SET CHARACTER SET utf8;')
-    c.execute('SET character_set_connection=utf8;')
-    for o in objs:
-        _process_one_obj(o, db, c)
-    c.close()
-    db.commit()
-    db.close()
+    
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
  
     def address_string(self): #Fix for the slow response
         host, port = self.client_address[:2]
-        #return socket.getfqdn(host)
         return host
  
     def do_POST(self):
-        print "Path:", self.path
-        ctype, _ = cgi.parse_header(self.headers.getheader('content-type'))
-        print "ctype:", ctype
-        length = int(self.headers.getheader('content-length'))
-        print "Length:", length
-        data = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
-        #print "Data:", data
-        self.send_response(200, "Roger that")
-        obj = json.loads(data.keys()[0])
-        if isinstance(obj, list):
-            print "Processing a list"
-            t = threading.Thread(target = process_several_objs, args = [obj])
-            t.start()
-        elif isinstance(obj, dict) and obj.has_key('timestamp') and obj.has_key('location'):
-            print "Processing single dict"
-            t = threading.Thread(target = process_one_obj, args = [obj])
-            t.start()
-        print '\n'
+        global debug, json_parser, data_manager, location_resolver, save_readings, respond_with_location
+        if debug:
+            print "Path:", self.path
+        if None != re.search('/api/v1/process_wifi_gps_reading/*', self.path):
+            ctype, _ = cgi.parse_header(self.headers.getheader('content-type'))
+            if debug:
+                print "ctype:", ctype
+            if ctype == 'application/json':
+                length = int(self.headers.getheader('content-length'))
+                data = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
+                if debug:
+                    print "Length:", length, "data:", data
+                json_str = data.keys()[0]
+                timestamp, locname, wifi_data, gps_data = json_parser.parse_wifi_gps_json(json_str)
+                locid = location_resolver.resolve_name(locname)
+                if debug:
+                    print timestamp, locid, wifi_data, gps_data
+                if save_readings:
+                    data_manager.save_one_reading(timestamp, locid, wifi_data, gps_data)
+                    if not respond_with_location:
+                        self.send_response(200, "Saved")
+                if respond_with_location:
+                    le = locationestimator.LocationEstimator(debug = debug)
+                    probs = le.probabilities(wifi_data, gps_data, data_manager.wifi_stats, data_manager.gps_stats)
+                    locid = le.estimate_location(probs)[0]
+                    locname = location_resolver.resolve_id(locid)
+                    response = json.dumps({locname: locid})
+                    print "Will respond:", response
+                    self.send_response(200, response)
+                self.send_response(200, "OK, I didn't do anything")
         
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
@@ -100,6 +69,10 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
  
 class SimpleHttpServer():
     def __init__(self, ip, port):
+        global debug, json_parser, data_manager, location_resolver
+        json_parser = jsonparser.JsonParser(debug = debug)
+        data_manager = datamanager.DataManager(debug = debug)
+        location_resolver = locationresolver.LocationResolver(debug = debug)
         self.server = ThreadedHTTPServer((ip,port), HTTPRequestHandler)
  
     def start(self):

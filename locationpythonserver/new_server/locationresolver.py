@@ -34,8 +34,8 @@ class LocationResolver(object):
         query_template = "SELECT location_id, location_name FROM locations"
         c.execute(query_template)
         for locid, locname in c.fetchall():
-            self.name_to_id[unicode(locname)] = int(locid)
-            self.id_to_name[int(locid)] = unicode(locname)
+            self.name_to_id[locname.decode("utf-8")] = int(locid)
+            self.id_to_name[int(locid)] = locname.decode("utf-8")
         c.close()
         db.close()
         

@@ -94,7 +94,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 f.close()
             else: #assuming that's html
                 page = lxml.html.parse(filename)
-                page.findall(".//div[@id=\"aaa\"]")[0].text = "Works Perfectly!"
+                page.findall(".//div[@id=\"itworks\"]")[0].text = "Works Perfectly!"
                 res = lxml.html.tostring(page, encoding = "utf-8", pretty_print = True)
                 for line in res:
                     self.wfile.write(line)

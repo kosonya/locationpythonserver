@@ -8,6 +8,7 @@ import re
 import json
 import os
 import lxml.html
+import time
 
 import locationestimator
 import locationresolver
@@ -20,6 +21,7 @@ data_manafer = None
 location_resolver = None
 save_readings = False
 respond_with_location = True
+http_server = None
 
     
 
@@ -62,7 +64,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 self.send_response(200, "OK, I didn't do anything")
         
     def do_GET(self):
-        global debug
+        global debug, http_server
         if debug:
             print "GET received:", self.path
         if None != re.search("/admin/dashboard*", self.path):
@@ -99,6 +101,16 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 for line in res:
                     self.wfile.write(line)
             self.wfile.close()
+        elif None != re.search("/admin/killserver*", self.path):
+            filespath = os.path.dirname(os.path.realpath(__file__))
+            filename = os.path.join(filespath, "static", "killserver.html")
+            f = open(filename, "r")
+            page = "".join(f.readlines())
+            f.close()
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/html')
+            self.wfile.write(page)
+            http_server.stop()
         else:
             self.send_response(404, "Not found")
 
@@ -131,10 +143,11 @@ class SimpleHttpServer():
 
 
 def main():
-    server = SimpleHttpServer('', 8080)
+    global http_server
+    http_server = SimpleHttpServer('', 8080)
     print 'HTTP Server Running...........'
-    server.start()
-    server.waitForThread()
+    http_server.start()
+    http_server.waitForThread()
     
 if __name__ == "__main__":
     main()

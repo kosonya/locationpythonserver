@@ -22,7 +22,7 @@ import threading
 class LocationResolver(object):
     
     def __init__(self, db_host = "localhost", db_user = "root", db_password = "",
-                 db_name = "wifilocation", background_updates_delay = 10, debug = False):
+                 db_name = "location_resolve", background_updates_delay = 10, debug = False):
         self.name_to_id = {}
         self.id_to_name = {}
         self.db_host = db_host

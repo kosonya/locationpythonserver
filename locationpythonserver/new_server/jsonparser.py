@@ -13,9 +13,15 @@ class JsonParser(object):
         
         if isinstance(obj, dict):
             timestamp = obj['timestamp']
-            locname = obj['location']
+            if obj.has_key("location"):
+                locname = obj['location']
+            else:
+                locname = None
             if self.debug:
-                print timestamp, locname
+                if locname:
+                    print timestamp, locname
+                else:
+                    print timestamp, "No location"
             wifi_data = {}
             for key in obj.keys():
                 if key[:9] == "wifiBSSID":

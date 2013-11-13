@@ -46,22 +46,45 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     print "Length:", length, "data:", data
                 json_str = data.keys()[0]
                 timestamp, locname, wifi_data, gps_data = json_parser.parse_wifi_gps_json(json_str)
-                locid = location_resolver.resolve_name(locname)
+                if locname:
+                    locid = location_resolver.resolve_name(locname)
+                else:
+                    locid = None
                 if debug:
-                    print timestamp, locid, wifi_data, gps_data
-                if save_readings:
-                    data_manager.save_one_reading(timestamp, locid, wifi_data, gps_data)
-                    if not respond_with_location:
-                        self.send_response(200, "Saved")
-                if respond_with_location:
+                    if locid:
+                        print timestamp, locid, wifi_data, gps_data
+                    else:
+                        print timestamp, "no location", wifi_data, gps_data
+                
+                if (not save_readings or not locid) and not respond_with_location:
+                    if debug:
+                        print "Will respond \"OK, I didn't do anything\""
+                        self.send_response(200, "OK, I didn't do anything")
+                elif (not save_readings or not locid) and respond_with_location:
                     le = locationestimator.LocationEstimator(debug = debug)
                     probs = le.probabilities(wifi_data, gps_data, data_manager.wifi_stats, data_manager.gps_stats)
                     locid = le.estimate_location(probs)[0]
                     locname = location_resolver.resolve_id(locid)
                     response = json.dumps({locname: locid})
-                    print "Will respond:", response
+                    if debug:
+                        print "Will respond:", response
                     self.send_response(200, response)
-                self.send_response(200, "OK, I didn't do anything")
+                elif save_readings and locid and not respond_with_location:
+                    data_manager.save_one_reading(timestamp, locid, wifi_data, gps_data)
+                    if debug:
+                        print "Will respond \"Saved\""
+                    self.send_response(200, "Saved")
+                elif save_readings and locid and respond_with_location:
+                    data_manager.save_one_reading(timestamp, locid, wifi_data, gps_data)
+                    le = locationestimator.LocationEstimator(debug = debug)
+                    probs = le.probabilities(wifi_data, gps_data, data_manager.wifi_stats, data_manager.gps_stats)
+                    locid = le.estimate_location(probs)[0]
+                    locname = location_resolver.resolve_id(locid)
+                    response = json.dumps({locname: locid})
+                    if debug:
+                        print "Will respond:", response
+                    self.send_response(200, response)
+ 
         
     def do_GET(self):
         global debug, http_server

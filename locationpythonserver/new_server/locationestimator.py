@@ -50,11 +50,25 @@ class LocationEstimator(object):
         return res
     
     def probabilities(self, wifi_reading, gps_reading, wifi_stats, gps_stats):
-        w = self.wifi_probabilities(wifi_reading, wifi_stats)
-        g = self.gps_probabilities(gps_reading, gps_stats)
+        if gps_reading == {} and wifi_reading == {}:
+            return {}
+        if gps_reading != {}:
+            g = self.gps_probabilities(gps_reading, gps_stats)
+            keys = g.keys()
+        else:
+            g = {}
+        if wifi_reading != {}:
+            w = self.wifi_probabilities(wifi_reading, wifi_stats)
+            keys = w.keys()
+        else:
+            w = {}
         res = {}
-        for location in w.keys():
-                res[location] = w[location] * g[location]
+        for location in keys:
+                res[location] = 1
+                if w != {}:
+                    res[location] *= w[location]
+                if g != {}:
+                    res[location] *= g[location]
         return res
     
     

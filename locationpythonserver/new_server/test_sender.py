@@ -31,7 +31,7 @@ def main():
         locname = locres.resolve_id(locid)
         json_str = jp.encode_wifi_gps(timestamp, locname, wifi_data, gps_data)
         print json_str
-        conn.request("POST", "/api/v1/process_wifi_gps_reading/", json_str, {"Content-type": "application/json"})
+        conn.request("POST", "/api/v1/process_wifi_gps_reading/list/", json_str, {"Content-type": "application/json"})
         response = conn.getresponse()
         print response.status, response.reason
         data = response.read()

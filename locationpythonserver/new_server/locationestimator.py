@@ -89,5 +89,8 @@ class LocationEstimator(object):
     def estimate_location(self, probabilities):
         return max(probabilities.items(), key = lambda x: x[1])
     
+    def locations_list(self, probabilities):
+        return sorted(probabilities.items(), key = lambda x: x[1])
+    
     
     

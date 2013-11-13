@@ -52,6 +52,10 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         if debug:
             print "Path:", self.path
         if None != re.search('/api/v1/process_wifi_gps_reading/*', self.path):
+            if None != re.search('/api/v1/process_wifi_gps_reading/list/*', self.path):
+                respond_with_list = True
+            else:
+                respond_with_list = False
             ctype, _ = cgi.parse_header(self.headers.getheader('content-type'))
             if debug:
                 print "ctype:", ctype
@@ -79,9 +83,14 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 elif (not save_readings or not locid) and respond_with_location:
                     le = locationestimator.LocationEstimator(debug = debug)
                     probs = le.probabilities(wifi_data, gps_data, data_manager.wifi_stats, data_manager.gps_stats)
-                    locid = le.estimate_location(probs)[0]
-                    locname = location_resolver.resolve_id(locid)
-                    response = json.dumps({"location_name":locname, "location_id": locid})
+                    if not respond_with_list:
+                        locid = le.estimate_location(probs)[0]
+                        locname = location_resolver.resolve_id(locid)
+                        response = json.dumps({"location_name":locname, "location_id": locid})
+                    else:
+                        locs = le.locations_list(probs)
+                        loclist = [{"location_id": loc[0], "location_name": location_resolver.resolve_id(loc[0])} for loc in locs]
+                        response = json.dumps(loclist)                    
                     if debug:
                         print "Will respond:", response
                     self.send_response(200, response)
@@ -94,13 +103,17 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     data_manager.save_one_reading(timestamp, locid, wifi_data, gps_data)
                     le = locationestimator.LocationEstimator(debug = debug)
                     probs = le.probabilities(wifi_data, gps_data, data_manager.wifi_stats, data_manager.gps_stats)
-                    locid = le.estimate_location(probs)[0]
-                    locname = location_resolver.resolve_id(locid)
-                    response = json.dumps({"location_name":locname, "location_id": locid})
+                    if not respond_with_list:
+                        locid = le.estimate_location(probs)[0]
+                        locname = location_resolver.resolve_id(locid)
+                        response = json.dumps({"location_name":locname, "location_id": locid})
+                    else:
+                        locs = le.locations_list(probs)
+                        loclist = [{"location_id": loc[0], "location_name": location_resolver.resolve_id(loc[0])} for loc in locs]
+                        response = json.dumps(loclist)
                     if debug:
                         print "Will respond:", response
                     self.send_response(200, response)
- 
         
     def do_GET(self):
         global debug, http_server

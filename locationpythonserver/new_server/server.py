@@ -65,7 +65,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     probs = le.probabilities(wifi_data, gps_data, data_manager.wifi_stats, data_manager.gps_stats)
                     locid = le.estimate_location(probs)[0]
                     locname = location_resolver.resolve_id(locid)
-                    response = json.dumps({locname: locid})
+                    response = json.dumps({"location_name":locname, "location_id": locid})
                     if debug:
                         print "Will respond:", response
                     self.send_response(200, response)
@@ -80,7 +80,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     probs = le.probabilities(wifi_data, gps_data, data_manager.wifi_stats, data_manager.gps_stats)
                     locid = le.estimate_location(probs)[0]
                     locname = location_resolver.resolve_id(locid)
-                    response = json.dumps({locname: locid})
+                    response = json.dumps({"location_name":locname, "location_id": locid})
                     if debug:
                         print "Will respond:", response
                     self.send_response(200, response)

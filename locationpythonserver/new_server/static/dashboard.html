@@ -8,6 +8,11 @@
 	<body>
 		<img src="/admin/dashboard/CMU_logo_stack_black.png"/>
 		<div id="itworks" class="text">It works!</div>
+		<form action="/admin/settings/" method="get">
+			<input type="checkbox" id="respond_with_location" value="respond_with_location">Respond with location</input><BR/>
+			<input type="checkbox" id="save_packets_to_db" value="save_packets_to_db">Save incoming packets to DB</input><BR/>
+			<input type="submit" name="formSubmit" value="Submit" />
+		</form>
 		<div id="killbutton" class="commandform">
 			<form action="/admin/killserver/" method="get">
 				<button>Kill server</button>

@@ -153,13 +153,17 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 for line in res:
                     self.wfile.write(line)
             self.wfile.close()
+        elif None != re.search("/admin/settings/*", self.path):
+            if debug:
+                print self.path
+            self.send_response(200, "OK")
         elif None != re.search("/admin/killserver*", self.path):
             filespath = os.path.dirname(os.path.realpath(__file__))
             filename = os.path.join(filespath, "static", "killserver.html")
             f = open(filename, "r")
             page = "".join(f.readlines())
             f.close()
-            self.send_response(200)
+            self.send_response(200, "OK")
             self.send_header('Content-Type', 'text/html')
             self.wfile.write(page)
             self.wfile.close()

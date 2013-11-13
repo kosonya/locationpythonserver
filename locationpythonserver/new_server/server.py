@@ -133,6 +133,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html')
             self.wfile.write(page)
+            self.wfile.close()
             http_server.stop()
         else:
             self.send_response(404, "Not found")

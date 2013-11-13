@@ -61,7 +61,7 @@ class DataManager(object):
     
     def get_all_wifi_stats(self):
         db, c = self.db_init()
-        c.execute("SELECT location_id, BSSID, AVG(level), STD(level) FROM wifi_readings WHERE location_id IN (SELECT location_id FROM locations) GROUP BY location_id, BSSID")
+        c.execute("SELECT location_id, BSSID, AVG(level), STD(level) FROM wifi_readings GROUP BY location_id, BSSID")
         for row in c.fetchall():
             location_id = int(row[0])
             bssid = unicode(row[1])
@@ -79,7 +79,7 @@ class DataManager(object):
     
     def get_all_gps_stats(self):
         db, c = self.db_init()
-        c.execute("SELECT location_id, AVG(Latitude), STD(Latitude), AVG(Longitude), STD(Longitude) FROM gps_and_signal_readings WHERE location_id IN (SELECT location_id FROM locations) GROUP BY location_id")
+        c.execute("SELECT location_id, AVG(Latitude), STD(Latitude), AVG(Longitude), STD(Longitude) FROM gps_and_signal_readings GROUP BY location_id")
         for row in c.fetchall():
             location_id = int(row[0])
             self.gps_stats[location_id] = {"lat":

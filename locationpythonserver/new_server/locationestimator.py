@@ -90,7 +90,7 @@ class LocationEstimator(object):
         return max(probabilities.items(), key = lambda x: x[1])
     
     def locations_list(self, probabilities):
-        return sorted(probabilities.items(), key = lambda x: x[1])
+        return sorted(probabilities.items(), key = lambda x: -x[1])
     
     
     

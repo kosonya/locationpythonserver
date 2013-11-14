@@ -185,8 +185,8 @@ class SimpleHttpServer():
         data_manager = datamanager.DataManager(debug = debug)
         location_resolver = locationresolver.LocationResolver(debug = debug)
         self.server = ThreadedHTTPServer((ip,port), HTTPRequestHandler)
-	data_manager.start_background_updates()
-	location_resolver.start_background_updates()
+        data_manager.start_background_updates()
+        location_resolver.start_background_updates()
  
     def start(self):
         self.server_thread = threading.Thread(target=self.server.serve_forever)

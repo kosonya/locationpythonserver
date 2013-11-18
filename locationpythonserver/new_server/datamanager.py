@@ -16,8 +16,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Locationing Server.  If not, see <http://www.gnu.org/licenses/>.
 import MySQLdb
-import time
-import threading
+import bg_updater
 
 class DataManager(object):
     
@@ -44,15 +43,9 @@ class DataManager(object):
         return db, c
     
     def start_background_updates(self):
-        def update(main_class):
-            while True:
-                main_class.fetch_all_from_db()
-                if self.debug:
-                    print "Wifi and GPS stats updated! Sleeping for {} seconds".format(self.background_updates_delay)
-                time.sleep(self.background_updates_delay)
-            
-        self.bg_upd_thread = threading.Thread(target = update, args = [self])
-        self.bg_upd_thread.daemon = True
+        self.bg_upd_thread = bg_updater.BackgroundUpdater(reference_class = self, delay = 10,
+                                                          msg = "Wifi and GPS were updated",
+                                                          debug = self.debug)
         self.bg_upd_thread.start()
         
     def fetch_all_from_db(self):

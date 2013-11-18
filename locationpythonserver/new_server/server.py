@@ -24,7 +24,6 @@ import re
 import json
 import os
 import lxml.html
-import time
 
 import locationestimator
 import locationresolver
@@ -168,6 +167,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(page)
             self.wfile.close()
             http_server.stop()
+            location_resolver.bg_upd_thread.running = False
+            data_manager.bg_upd_thread.running = False
         else:
             self.send_response(404, "Not found")
 

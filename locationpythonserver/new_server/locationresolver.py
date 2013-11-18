@@ -17,7 +17,7 @@
 #    along with Locationing Server.  If not, see <http://www.gnu.org/licenses/>.
 import MySQLdb
 import time
-import threading
+import bg_updater
 
 class LocationResolver(object):
     
@@ -89,15 +89,9 @@ class LocationResolver(object):
         raise Exception("No entry with the id {} found".format(locid))
     
     def start_background_updates(self):
-        def update(main_class):
-            while True:
-                main_class.fetch_all_from_db()
-                if self.debug:
-                    print "Location list updated! Sleeping for {} seconds".format(self.background_updates_delay)
-                time.sleep(self.background_updates_delay)
-            
-        self.bg_upd_thread = threading.Thread(target = update, args = [self])
-        self.bg_upd_thread.daemon = True
+        self.bg_upd_thread = bg_updater.BackgroundUpdater(reference_class = self, delay = 10,
+                                                          msg = "Location list was updated",
+                                                          debug = self.debug)
         self.bg_upd_thread.start()
 
 def main():

@@ -32,5 +32,5 @@ class BackgroundUpdater(threading.Thread):
         while self.running:
             self.reference_class.fetch_all_from_db()
             if self.debug:
-                print "{}! Sleeping for {} seconds".format(self.msg, self.background_updates_delay)
+                print "{}! Sleeping for {} seconds".format(self.msg, self.delay)
                 time.sleep(self.delay)

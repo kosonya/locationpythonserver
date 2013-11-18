@@ -17,7 +17,7 @@
 import math
 
 class LocationEstimator(object):
-    def __init__(self, minimum_p = 1e-5, debug = False):
+    def __init__(self, minimum_p = 1e-20, debug = False):
         self.minimum_p = minimum_p
         self.debug = debug
 

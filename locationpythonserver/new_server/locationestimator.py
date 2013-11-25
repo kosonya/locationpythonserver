@@ -80,9 +80,11 @@ class LocationEstimator(object):
         for location in keys:
                 res[location] = 1
                 if w != {}:
-                    res[location] *= w[location]
+                    if res.has_key(location) and w.has_key(location):
+                        res[location] *= w[location]
                 if g != {}:
-                    res[location] *= g[location]
+                    if res.has_key(location) and g.has_key(location):
+                        res[location] *= g[location]
         return res
     
     

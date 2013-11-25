@@ -169,6 +169,8 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             http_server.stop()
             location_resolver.bg_upd_thread.running = False
             data_manager.bg_upd_thread.running = False
+        elif None != re.search("/api/v1/get_all_locations/*", self.path):
+            
         else:
             self.send_response(404, "Not found")
 

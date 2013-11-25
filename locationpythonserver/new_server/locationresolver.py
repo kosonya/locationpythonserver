@@ -18,6 +18,7 @@
 import MySQLdb
 import time
 import bg_updater
+import json
 
 class LocationResolver(object):
     
@@ -88,6 +89,16 @@ class LocationResolver(object):
         
         raise Exception("No entry with the id {} found".format(locid))
     
+    
+    def get_all_locations_json(self):
+        pairs = self.name_to_id.items()
+        pairs = sorted(pairs, key = lambda x: x[0])
+        loclist = [{"location_id": loc[1], "location_name": loc[0]} for loc in pairs]
+        res = json.dumps(loclist)
+        return res
+        
+        
+    
     def start_background_updates(self):
         self.bg_upd_thread = bg_updater.BackgroundUpdater(reference_class = self, delay = 10,
                                                           msg = "Location list was updated",
@@ -105,10 +116,11 @@ def main():
     print loc_res.resolve_name(u"Дом'\' 私の家")
     print loc_res.name_to_id  
     print loc_res.resolve_id(23)
-    loc_res.start_background_updates()
-    time.sleep(10)
-    loc_res.background_updates_delay = 2
-    time.sleep(10)
+    #loc_res.start_background_updates()
+    #time.sleep(10)
+    #loc_res.background_updates_delay = 2
+    #time.sleep(10)
+    print loc_res.get_all_locations_json()
     
 if __name__ == "__main__":
     main()

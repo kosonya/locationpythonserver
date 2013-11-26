@@ -82,9 +82,13 @@ class LocationEstimator(object):
                 if w != {}:
                     if res.has_key(location) and w.has_key(location):
                         res[location] *= w[location]
+                    else:
+                        res[location] *= self.minimum_p
                 if g != {}:
                     if res.has_key(location) and g.has_key(location):
                         res[location] *= g[location]
+                    else:
+                        res[location] *= self.minimum_p
         return res
     
     
@@ -93,6 +97,4 @@ class LocationEstimator(object):
     
     def locations_list(self, probabilities):
         return sorted(probabilities.items(), key = lambda x: -x[1])
-    
-    
     

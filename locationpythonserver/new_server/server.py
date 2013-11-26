@@ -35,7 +35,7 @@ json_parser = None
 data_manafer = None
 location_resolver = None
 save_readings = True
-respond_with_location = False
+respond_with_location = True
 http_server = None
 
     

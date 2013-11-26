@@ -21,7 +21,7 @@ import httplib
 import json
 
 def main():
-    dm = datamanager.DataManager(debug = True, db_name="wifi_gps_readings_test")
+    dm = datamanager.DataManager(debug = True, db_name="wifi_gps_readings")
     locres = locationresolver.LocationResolver(debug = True)
     jp = jsonparser.JsonParser(debug = True)
     

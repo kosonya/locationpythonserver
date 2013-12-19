@@ -190,7 +190,7 @@ class SimpleHttpServer():
         data_manager = datamanager.DataManager(debug = debug)
         location_resolver = locationresolver.LocationResolver(debug = debug)
         dumpfile = open("dump.txt", "r+")
-        dumpfile.seek(0, whence=2)
+        dumpfile.seek(0, 2)
         self.server = ThreadedHTTPServer((ip,port), HTTPRequestHandler)
         data_manager.start_background_updates()
         location_resolver.start_background_updates()

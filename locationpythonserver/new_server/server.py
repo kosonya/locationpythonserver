@@ -37,7 +37,7 @@ location_resolver = None
 save_readings = True
 respond_with_location = True
 http_server = None
-
+dumpfile = None
     
 
 class HTTPRequestHandler(BaseHTTPRequestHandler):
@@ -47,7 +47,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
         return host
  
     def do_POST(self):
-        global debug, json_parser, data_manager, location_resolver, save_readings, respond_with_location
+        global debug, json_parser, data_manager, location_resolver, save_readings, respond_with_location, dumpfile
         if debug:
             print "Path:", self.path
         if None != re.search('/api/v1/process_wifi_gps_reading/*', self.path):
@@ -64,6 +64,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 if debug:
                     print "Length:", length, "data:", data
                 json_str = data.keys()[0]
+                dumpfile.write(json_str + "\n")
                 timestamp, locname, wifi_data, gps_data = json_parser.parse_wifi_gps_json(json_str)
                 if locname:
                     locid = location_resolver.resolve_name(locname)
@@ -115,7 +116,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     self.send_response(200, response)
         
     def do_GET(self):
-        global debug, http_server
+        global debug, http_server, dumpfile
         if debug:
             print "GET received:", self.path
         if None != re.search("/admin/dashboard*", self.path):
@@ -167,6 +168,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(page)
             self.wfile.close()
             http_server.stop()
+            dumpfile.close()
             location_resolver.bg_upd_thread.running = False
             data_manager.bg_upd_thread.running = False
         elif None != re.search("/api/v1/get_all_locations/*", self.path):
@@ -183,10 +185,12 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
  
 class SimpleHttpServer():
     def __init__(self, ip, port):
-        global debug, json_parser, data_manager, location_resolver
+        global debug, json_parser, data_manager, location_resolver, dumpfile
         json_parser = jsonparser.JsonParser(debug = debug)
         data_manager = datamanager.DataManager(debug = debug)
         location_resolver = locationresolver.LocationResolver(debug = debug)
+        dumpfile = open("dump.txt", "r+")
+        dumpfile.seek(0, whence=2)
         self.server = ThreadedHTTPServer((ip,port), HTTPRequestHandler)
         data_manager.start_background_updates()
         location_resolver.start_background_updates()
@@ -212,4 +216,4 @@ def main():
     http_server.waitForThread()
     
 if __name__ == "__main__":
-    main()
+	main()

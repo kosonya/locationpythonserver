@@ -22,6 +22,10 @@ import json
 
 def main():
     f = open("dump.txt", "r")
+    stats = {}
+    stats_loc = {}
+    total = 0
+    rights = 0
     for json_packet in f.readlines():
         #print json_packet
         try:
@@ -30,35 +34,46 @@ def main():
                 continue
             print json_obj
             conn = httplib.HTTPConnection(host = "localhost", port = 8080)
-            conn.request("POST", "/api/v1/process_wifi_gps_reading/list/", json_packet, {"Content-type": "application/json"})
+            conn.request("POST", "/api/v1/process_wifi_gps_reading/", json_packet, {"Content-type": "application/json"})
             response = conn.getresponse()
-            print "aaa", response.status, response.reason
-            data = response.read()
-            print "bbb", data
-        except Exception as e:
-            print e
+            resp = json.loads(response.reason)
+            total += 1
             
+            if json_obj.has_key("device_model"):
+                model = json_obj["device_model"]
+            else:
+                model = "undefined model"
+            if stats.has_key(model):
+                stats[model]["total"] += 1
+            else:
+                stats[model] = {"total": 1, "rights": 0}
+                
+                
+            if stats_loc.has_key(json_obj["location"]):
+                stats_loc[json_obj["location"]]["total"] += 1
+            else:
+                stats_loc[json_obj["location"]] = {"total": 1, "rights": 0}
     
+            if json_obj["location"] == resp["location_name"]:
+                rights += 1
+                stats[model]["rights"] += 1
+                stats_loc[json_obj["location"]]["rights"] += 1
+                print "True!!!"
+            else:
+                print "False :("
+            print "Success rate so far:", 100*float(rights)/float(total), "%"
+        except Exception as e:
+            print "Error:", e
+
+
     
-    return
-    dm = datamanager.DataManager(debug = True, db_name="wifi_location_test")
-    locres = locationresolver.LocationResolver(debug = True)
-    jp = jsonparser.JsonParser(debug = True)
-    
-    ts = dm.load_timestamps()
-    conn = httplib.HTTPConnection(host = "localhost", port = 8080)
-    for timestamp in ts:
-        _, locid, wifi_data, gps_data = dm.load_one_reading(timestamp)
-        locname = locres.resolve_id(locid)
-        json_str = jp.encode_wifi_gps(timestamp, locname, wifi_data, gps_data)
-        print json_str
-        conn.request("POST", "/api/v1/process_wifi_gps_reading/list/", json_str, {"Content-type": "application/json"})
-        response = conn.getresponse()
-        print response.status, response.reason
-        data = response.read()
-        print data
-        
-        
-        
+    print "Total entries: %d, success rate: %3.1f%%" % (total, 100*float(rights)/float(total))        
+    for model in stats.keys():
+        success = 100*float(stats[model]["rights"])/float(stats[model]["total"])
+        print "Model: %s, entries: %d, success rate: %3.1f%%" % (model, stats[model]["total"], success)
+ 
+    for loc in stats_loc.keys():
+        success = 100*float(stats_loc[loc]["rights"])/float(stats_loc[loc]["total"])
+        print "Location: %s, entries: %d, success rate: %3.1f%%" % (loc, stats_loc[loc]["total"], success)
 if __name__ == "__main__":
     main()

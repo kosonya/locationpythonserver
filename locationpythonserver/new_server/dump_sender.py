@@ -23,12 +23,18 @@ import json
 def main():
     f = open("dump.txt", "r")
     for json_packet in f.readlines():
-        print json_packet
+        #print json_packet
         try:
             json_obj = json.loads(json_packet)
             if not json_obj.has_key('location'):
                 continue
             print json_obj
+            conn = httplib.HTTPConnection(host = "localhost", port = 8080)
+            conn.request("POST", "/api/v1/process_wifi_gps_reading/list/", json_packet, {"Content-type": "application/json"})
+            response = conn.getresponse()
+            print "aaa", response.status, response.reason
+            data = response.read()
+            print "bbb", data
         except Exception as e:
             print e
             

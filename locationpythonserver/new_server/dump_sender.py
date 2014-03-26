@@ -31,7 +31,7 @@ def main():
             print json_obj
         except Exception as e:
             print e
-            
+    print json_obj  
     
     
     return

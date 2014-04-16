@@ -21,7 +21,7 @@ import httplib
 import json
 
 def main():
-    f = open("dump_test.txt", "r")
+    f = open("dump_test_2.txt", "r")
     dump = []
     for json_packet in f.readlines():
         #print json_packet
@@ -34,6 +34,7 @@ def main():
             print e
 
     print len(dump), "objects"
+    dump_len = len(dump)
     rights = 0
     conn = httplib.HTTPConnection(host = "localhost", port = 8080)
     by_location = {}
@@ -42,6 +43,27 @@ def main():
         trueloc = json_obj['location']
         dev = json_obj['device_model']
         del json_obj['location']
+	should_continue = True
+	no_gps = False
+	no_wifi = False
+	if no_wifi:
+		for key in json_obj.keys():
+			if "wifi" in key:
+				del json_obj[key]
+			elif "GPS" in key:
+				should_continue = False
+		if should_continue:
+			dump_len -= 1
+			continue
+	elif no_gps:
+		for key in json_obj.keys():
+			if "GPS" in key:
+				del json_obj[key]
+			elif "wifi" in key:
+				should_continue = False
+		if should_continue:
+			dump_len -= 1
+			continue
         json_str = json.dumps(json_obj)
         print "Object", i+1, "out of", len(dump)
         print json_str
@@ -69,17 +91,20 @@ def main():
                 print "Success rate so far:", float(rights)/(i+1)
         except Exception as e:
            pass
-    print "Success rate:", float(rights)/len(dump)
+    print "Success rate:", float(rights)/dump_len
     print "\n\n"
     for loc in by_location.keys():
         print loc, "&", by_location[loc][0], "&", ("%3.1f\%%\\\\" % (100*float(by_location[loc][1])/by_location[loc][0]))
-        print "\\hline"
-    print "Total &", len(dump), "&", ("%3.1f\%%\\\\" % (100*float(rights)/len(dump)))
+        print ""#"\\hline"
+    #print "Total &", 
+    print dump_len, "&", ("%3.1f\%%\\\\" % (100*float(rights)/dump_len))
     print "\n\n"
     for dev in by_device.keys():
-        print dev, "&", by_device[dev][0], "&", ("%3.1f\%%\\\\" % (100*float(by_device[dev][1])/by_device[dev][0]))
-        print "\\hline"
-    print "Total &", len(dump), "&", ("%3.1f\%%\\\\" % (100*float(rights)/len(dump)))
+        #print dev, "&", 
+	print by_device[dev][0], "&", ("%3.1f\%%\\\\" % (100*float(by_device[dev][1])/by_device[dev][0]))
+        print ""#"\\hline"
+    #print "Total &", 
+    print dump_len, "&", ("%3.1f\%%\\\\" % (100*float(rights)/dump_len))
         
 if __name__ == "__main__":
     main()

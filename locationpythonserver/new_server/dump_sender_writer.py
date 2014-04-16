@@ -21,7 +21,7 @@ import httplib
 import json
 
 def main():
-    f = open("dump_training.txt", "r")
+    f = open("dump_training_2.txt", "r")
     dump = []
     for json_packet in f.readlines():
         #print json_packet

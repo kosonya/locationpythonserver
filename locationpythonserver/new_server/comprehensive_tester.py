@@ -136,36 +136,55 @@ def read_data(filename, by_location_arrs, by_device_arrs):
     print by_location
     print by_device
 
-    if by_location_arrs.has_key('total'):
-        by_location_arrs['Total'].append( (dump_len, 100*float(rights)/dump_len) )
+    if by_location_arrs.has_key('Total'):
+        by_location_arrs['Total'].append( (dump_len, rights) )
     else:
-        by_location_arrs['Total'] = [(dump_len, 100*float(rights)/dump_len)]
+        by_location_arrs['Total'] = [(dump_len, rights)]
 
-    if by_device_arrs.has_key('total'):
-        by_device_arrs['Total'].append( (dump_len, 100*float(rights)/dump_len) )
+    if by_device_arrs.has_key('Total'):
+        by_device_arrs['Total'].append( (dump_len, rights) )
     else:
-        by_device_arrs['Total'] = [(dump_len, 100*float(rights)/dump_len)]
+        by_device_arrs['Total'] = [(dump_len, rights)]
 
     for location in by_location.keys():
         if by_location_arrs.has_key(location):
-            by_location_arrs[location].append( (by_location[location][0], 100*float(by_location[location][1])/by_location[location][0])) 
+            by_location_arrs[location].append( (by_location[location][0], by_location[location][1]) ) 
         else:
-            by_location_arrs[location] = [(by_location[location][0], 100*float(by_location[location][1])/by_location[location][0])]
+            by_location_arrs[location] = [(by_location[location][0], by_location[location][1])]
 
     for device in by_device.keys():
         if by_device_arrs.has_key(device):
-            by_device_arrs[device].append( (by_device[device][0], 100*float(by_device[device][1])/by_device[device][0])) 
+            by_device_arrs[device].append( (by_device[device][0], by_device[device][1])) 
         else:
-            by_device_arrs[device] = [(by_device[device][0], 100*float(by_device[device][1])/by_device[device][0])]
+            by_device_arrs[device] = [(by_device[device][0], by_device[device][1])]
 
 
     return by_location_arrs, by_device_arrs
 
 
+def build_report(arrs):
+	res = """\hline"""
+	res += "\n"
+	for key in arrs.keys():
+		line = key
+		total = 0
+		total_rights = 0
+		for pair in arrs[key]:
+			line += " & " + str(pair[0])
+			line += " & " + ("%3.1f\%%" % (100*float(pair[1])/pair[0]))
+			total += pair[0]
+			total_rights += pair[1]
+		line += " & " + str(total)
+		line += " & " + ("%3.1f\%%" % (100*float(total_rights)/total))
+		line += """\\\\""" + '\n'
+		line += """\hline""" + '\n'
+		res += line
+	return res
+
 def main():
 	by_location_arrs = {}
 	by_device_arrs = {}
-	for i in xrange(1):
+	for i in xrange(3):
 		filename = "dump_training_by_location_%d.txt" % i
 		print filename
 		print "Purging database, stop the server"
@@ -182,6 +201,10 @@ def main():
 
 	print by_location_arrs
 	print by_device_arrs
+
+	print build_report(by_location_arrs)
+	print "\n\n\n\n"
+	print build_report(by_device_arrs)
 
 if __name__ == "__main__":
 	main()

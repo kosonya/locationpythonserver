@@ -22,7 +22,7 @@ import bg_updater
 class LocationResolver(object):
     
     def __init__(self, db_host = "localhost", db_user = "root", db_password = "",
-                 db_name = "location_resolve", background_updates_delay = 10, debug = False):
+                 db_name = "wifi_location_training_2", background_updates_delay = 10, debug = False):
         self.name_to_id = {}
         self.id_to_name = {}
         self.db_host = db_host
@@ -85,7 +85,7 @@ class LocationResolver(object):
         self.fetch_all_from_db()
         if self.id_to_name.has_key(locid):
             return self.id_to_name[locid]
-        
+        print self.id_to_name
         raise Exception("No entry with the id {} found".format(locid))
     
     def start_background_updates(self):

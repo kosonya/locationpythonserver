@@ -21,7 +21,7 @@ import bg_updater
 class DataManager(object):
     
     def __init__(self, db_host = "localhost", db_user = "root", db_password = "",
-                 db_name = "wifi_gps_readings", background_updates_delay = 10, debug = False):
+                 db_name = "wifi_location_training_2", background_updates_delay = 10, debug = False):
         self.db_host = db_host
         self.db_user = db_user
         self.db_password = db_password

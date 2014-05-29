@@ -33,3 +33,11 @@ CREATE TABLE `wifi_readings` (
   KEY `location_timestamp` (`location_id`,`timestamp`),
   KEY `timestamp_location` (`timestamp`,`location_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=255 DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `locations`;
+CREATE TABLE `locations` (
+  `location_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `location_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`location_id`),
+  UNIQUE KEY `location_name_UNIQUE` (`location_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;

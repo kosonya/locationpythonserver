@@ -53,17 +53,8 @@ def main():
                 stats_loc[json_obj["location"]]["total"] += 1
             else:
                 stats_loc[json_obj["location"]] = {"total": 1, "rights": 0}
-    
-            if json_obj["location"] == resp["location_name"]:
-                rights += 1
-                stats[model]["rights"] += 1
-                stats_loc[json_obj["location"]]["rights"] += 1
-                print "True!!!"
-            else:
-                print "False :("
-            print "Success rate so far:", 100*float(rights)/float(total), "%"
         except Exception as e:
-            print "Error:", e
+            print e
 
 
     
